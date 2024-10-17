@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "889514701811",
+    "project_id": "intelliquiz1",
+    "storage_bucket": "intelliquiz1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889514701811:android:8dbd6211d9a0b9c7775886",
+        "android_client_info": {
+          "package_name": "com.example.intelliquiz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkFLkheAVJ24IJLwqclYkEDFkWu0bd3VQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
