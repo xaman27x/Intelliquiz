@@ -1,15 +1,15 @@
-import 'dart:ffi';
-
 class QuestionDetails {
-  late String questionID;
-  late String questionDomain;
-  late String question;
-  late bool optionRequired;
-  late Map<Int, String> options;
-  late bool mediaRequired;
-  late String mediaLink;
-  late Int marks;
-  late Int negativeMarks;
+  final String questionID;
+  final String questionDomain;
+  final String question;
+  final bool optionRequired;
+  final List<String> options;
+  final bool mediaRequired;
+  final String mediaLink;
+  final bool descriptionRequired;
+  final int marks;
+  final int negativeMarks;
+
   QuestionDetails({
     required this.questionID,
     required this.questionDomain,
@@ -18,6 +18,7 @@ class QuestionDetails {
     required this.options,
     required this.mediaRequired,
     required this.mediaLink,
+    required this.descriptionRequired,
     required this.marks,
     required this.negativeMarks,
   });
