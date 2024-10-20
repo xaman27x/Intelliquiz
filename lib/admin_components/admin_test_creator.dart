@@ -249,31 +249,25 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
     required bool descriptionRequired,
     required bool mediaRequired,
     required String testName,
-    dynamic file, // Ensure this is passed correctly
-    required String fileName, // File name
+    dynamic file,
+    required String fileName,
     int? correctOption,
     required int? marks,
     required int? negativeMarks,
   }) async {
     String? mediaUrl;
-    final questionID =
-        gen_6.generate(); // Assume this is for generating unique IDs
+    final questionID = gen_6.generate();
 
     try {
-      // Upload media to Firebase Storage if media is required and a file is provided
       if (mediaRequired && file != null) {
         final storageRef =
             FirebaseStorage.instance.ref('questions/$testName/$fileName');
-
-        // Handling file type for web upload
-        UploadTask task =
-            storageRef.putBlob(file.first); // Use the first file from the list
+        UploadTask task = storageRef.putBlob(file.first);
         TaskSnapshot taskSnapshot = await task;
         mediaUrl = await taskSnapshot.ref.getDownloadURL();
         debugPrint('media URL: $mediaUrl');
       }
 
-      // Prepare question data
       final Map<String, dynamic> dataUpload = {
         'testName': testName,
         'question': question,
