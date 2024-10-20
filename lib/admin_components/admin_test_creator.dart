@@ -1,7 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intelliquiz/models/question_details.dart';
+import 'package:random_string_generator/random_string_generator.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
+
+var gen_6 = RandomStringGenerator(fixedLength: 6, hasSymbols: false);
+
+Widget _entryField(
+    String title, TextEditingController controller, bool obscureText) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: title,
+        hintText:
+            title == 'Password' ? 'Enter your Password' : 'Enter your $title',
+        filled: true,
+        fillColor: const Color.fromARGB(193, 66, 66, 66).withOpacity(0.8),
+        labelStyle: const TextStyle(color: Colors.white),
+        hintStyle: const TextStyle(color: Color.fromARGB(174, 255, 255, 255)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      style: const TextStyle(color: Colors.white),
+      obscureText: obscureText,
+    ),
+  );
+}
 
 class AdminTestCreator extends StatefulWidget {
   const AdminTestCreator({super.key});
@@ -192,11 +222,108 @@ class _AdminTestDetailsPageState extends State<AdminTestDetailsPage> {
 
 class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
   late final Stream<QuerySnapshot> questionStream;
+  final TextEditingController _controllerQuestion = TextEditingController();
+  final TextEditingController _controllerQuestionDomain =
+      TextEditingController();
+  final TextEditingController _controllerCorrectOption =
+      TextEditingController();
+  final TextEditingController _controllerMarks = TextEditingController();
+  final TextEditingController _controllerNegativeMarks =
+      TextEditingController();
+  final TextEditingController _controllerOpt1 = TextEditingController();
+  final TextEditingController _controllerOpt2 = TextEditingController();
+  final TextEditingController _controllerOpt3 = TextEditingController();
+  final TextEditingController _controllerOpt4 = TextEditingController();
+  dynamic globalFiles;
+  bool optionRequired = false;
+  bool descriptionRequired = false;
+  bool mediaRequired = false;
+  String fileName = '';
+  dynamic fileSize = 0;
+
+  Future<void> uploadQuestion({
+    required String question,
+    required String questionDomain,
+    required bool optionRequired,
+    Map<dynamic, dynamic>? options,
+    required bool descriptionRequired,
+    required bool mediaRequired,
+    required String testName,
+    dynamic file, // Ensure this is passed correctly
+    required String fileName, // File name
+    int? correctOption,
+    required int? marks,
+    required int? negativeMarks,
+  }) async {
+    String? mediaUrl;
+    final questionID =
+        gen_6.generate(); // Assume this is for generating unique IDs
+
+    try {
+      // Upload media to Firebase Storage if media is required and a file is provided
+      if (mediaRequired && file != null) {
+        final storageRef =
+            FirebaseStorage.instance.ref('questions/$testName/$fileName');
+
+        // Handling file type for web upload
+        UploadTask task =
+            storageRef.putBlob(file.first); // Use the first file from the list
+        TaskSnapshot taskSnapshot = await task;
+        mediaUrl = await taskSnapshot.ref.getDownloadURL();
+        debugPrint('media URL: $mediaUrl');
+      }
+
+      // Prepare question data
+      final Map<String, dynamic> dataUpload = {
+        'testName': testName,
+        'question': question,
+        'questionDomain': questionDomain,
+        'questionID': questionID,
+        'optionRequired': optionRequired,
+        'options': options,
+        'mediaRequired': mediaRequired,
+        'mediaLink': mediaRequired ? mediaUrl : "",
+        'descriptionRequired': descriptionRequired,
+        'marks': marks,
+        'negativeMarks': negativeMarks,
+        'correctOption': correctOption,
+      };
+
+      // Add the question to 'Questions' collection
+      final DocumentReference questionRef = await FirebaseFirestore.instance
+          .collection('Questions')
+          .add(dataUpload);
+
+      // Get the document ID of the added question
+      final String questionDocID = questionRef.id;
+
+      // Query 'Test_Staging' to update the test document with the new question ID
+      final QuerySnapshot testRef = await FirebaseFirestore.instance
+          .collection('Test_Staging')
+          .where('testName', isEqualTo: testName)
+          .get();
+
+      if (testRef.docs.isNotEmpty) {
+        final String testRefID = testRef.docs.first.id;
+
+        // Update the 'questions' array in the test_staging
+        await FirebaseFirestore.instance
+            .collection('Test_Staging')
+            .doc(testRefID)
+            .update({
+          'questions': FieldValue.arrayUnion([questionDocID]),
+        });
+      } else {
+        debugPrint('Test with the given name not found');
+      }
+    } catch (e) {
+      debugPrint('Error uploading question: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-
     questionStream = FirebaseFirestore.instance
         .collection('Questions')
         .where('testName', isEqualTo: widget.testName)
@@ -225,8 +352,215 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
             color: Colors.white,
           ),
         ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return StatefulBuilder(
+                    builder: (context, setState) => AlertDialog(
+                      backgroundColor: Colors.black,
+                      title: const Text("Add a Question",
+                          style: TextStyle(color: Colors.white)),
+                      content: SingleChildScrollView(
+                        // <-- Makes the dialog scrollable
+                        child: Column(
+                          children: [
+                            _entryField(
+                              'Question',
+                              _controllerQuestion,
+                              false,
+                            ),
+                            _entryField(
+                              'Question Domain',
+                              _controllerQuestionDomain,
+                              false,
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Options Required?',
+                                  style: GoogleFonts.raleway(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                Checkbox(
+                                  checkColor: Colors.white,
+                                  value: optionRequired,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      optionRequired = value!;
+                                    });
+                                  },
+                                )
+                              ],
+                            ),
+                            if (optionRequired) ...[
+                              _entryField('Option1', _controllerOpt1, false),
+                              _entryField('Option2', _controllerOpt2, false),
+                              _entryField('Option3', _controllerOpt3, false),
+                              _entryField('Option4', _controllerOpt4, false),
+                            ],
+                            Row(
+                              children: [
+                                Text(
+                                  'Description Required?',
+                                  style: GoogleFonts.raleway(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                Checkbox(
+                                  checkColor: Colors.white,
+                                  value: descriptionRequired,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      descriptionRequired = value!;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Media Required?',
+                                  style: GoogleFonts.raleway(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                Checkbox(
+                                  checkColor: Colors.white,
+                                  value: mediaRequired,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      mediaRequired = value!;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            if (mediaRequired)
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () async {
+                                      html.FileUploadInputElement uploadInput =
+                                          html.FileUploadInputElement();
+                                      uploadInput.click();
+
+                                      uploadInput.onChange.listen((e) {
+                                        final files = uploadInput.files;
+                                        if (files != null && files.isNotEmpty) {
+                                          globalFiles = files;
+
+                                          setState(() {
+                                            fileName = files.first.name;
+                                            fileSize = (files.first.size / 1000)
+                                                .toStringAsFixed(
+                                              2,
+                                            );
+                                          });
+                                        }
+                                      });
+                                    },
+                                    color: Colors.white,
+                                    icon: const Icon(
+                                      Icons.upload_file_rounded,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    '$fileName  $fileSize kB',
+                                    style: GoogleFonts.raleway(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            if (optionRequired) ...[
+                              _entryField('Correct Option',
+                                  _controllerCorrectOption, false),
+                            ],
+                            _entryField(
+                                'Marks Awarded', _controllerMarks, false),
+                            _entryField('Negative Marks',
+                                _controllerNegativeMarks, false),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                uploadQuestion(
+                                  question: _controllerQuestion.text,
+                                  questionDomain:
+                                      _controllerQuestionDomain.text,
+                                  optionRequired: optionRequired,
+                                  descriptionRequired: descriptionRequired,
+                                  mediaRequired: mediaRequired,
+                                  testName: widget.testName,
+                                  options: {
+                                    '1': _controllerOpt1.text,
+                                    '2': _controllerOpt2.text,
+                                    '3': _controllerOpt3.text,
+                                    '4': _controllerOpt4.text,
+                                  },
+                                  file: globalFiles,
+                                  fileName: fileName,
+                                  correctOption:
+                                      int.parse(_controllerCorrectOption.text),
+                                  marks: int.parse(_controllerMarks.text),
+                                  negativeMarks:
+                                      int.parse(_controllerNegativeMarks.text),
+                                );
+                              },
+                              child: Text(
+                                'UPLOAD',
+                                style: GoogleFonts.raleway(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: Text(
+              'ADD A QUESTION',
+              style: GoogleFonts.raleway(
+                color: Colors.black,
+                fontSize: 19,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Container(
+        height: double.infinity,
         color: Colors.grey[400],
         child: StreamBuilder<QuerySnapshot>(
           stream: questionStream,
@@ -315,7 +649,6 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
                                   .toList(),
                             ),
                           ],
-
                           // Conditionally render media if required
                           if (questionDetails.mediaRequired &&
                               questionDetails.mediaLink.isNotEmpty)
@@ -323,7 +656,7 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
                               padding:
                                   const EdgeInsets.symmetric(vertical: 10.0),
                               child: Image.network(
-                                questionDetails.mediaLink,
+                                questionDetails.mediaLink.toString(),
                                 fit: BoxFit.cover,
                               ),
                             ),
