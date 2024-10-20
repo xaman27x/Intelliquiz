@@ -3,7 +3,8 @@ class QuestionDetails {
   final String questionDomain;
   final String question;
   final bool optionRequired;
-  final List<String> options;
+  final Map<dynamic, dynamic> options;
+  int correctOption;
   final bool mediaRequired;
   final String mediaLink;
   final bool descriptionRequired;
@@ -16,6 +17,7 @@ class QuestionDetails {
     required this.question,
     required this.optionRequired,
     required this.options,
+    required this.correctOption,
     required this.mediaRequired,
     required this.mediaLink,
     required this.descriptionRequired,
