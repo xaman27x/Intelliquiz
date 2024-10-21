@@ -300,7 +300,6 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
       if (testRef.docs.isNotEmpty) {
         final String testRefID = testRef.docs.first.id;
 
-        // Update the 'questions' array in the test_staging
         await FirebaseFirestore.instance
             .collection('Test_Staging')
             .doc(testRefID)
@@ -313,6 +312,39 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
     } catch (e) {
       debugPrint('Error uploading question: $e');
     }
+  }
+
+  Future<void> deleteQuestion(
+      {required String questionID,
+      required String question,
+      required String testName}) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Questions')
+        .where('question', isEqualTo: question)
+        .where('questionID', isEqualTo: questionID)
+        .get();
+    final docID = querySnapshot.docs.first.id;
+    await FirebaseFirestore.instance
+        .collection('Questions')
+        .doc(docID)
+        .delete();
+    final QuerySnapshot querySnapshot2 = await FirebaseFirestore.instance
+        .collection('Test_Staging')
+        .where('testName', isEqualTo: testName)
+        .get();
+    final docIdTest = querySnapshot2.docs.first.id;
+    await FirebaseFirestore.instance
+        .collection('Test_Staging')
+        .doc(docIdTest)
+        .update(
+      {
+        'questions': FieldValue.arrayRemove(
+          [
+            docID,
+          ],
+        )
+      },
+    );
   }
 
   @override
@@ -667,12 +699,73 @@ class _AdminTestModificationPageState extends State<AdminTestModificationPage> {
 
                           // Marks and negative marks
                           const SizedBox(height: 10),
-                          Text(
-                            "Marks: ${questionDetails.marks}, Negative Marks: -${questionDetails.negativeMarks}, Correct Choice: ${questionDetails.correctOption}",
-                            style: GoogleFonts.raleway(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                "Marks: ${questionDetails.marks}, Negative Marks: -${questionDetails.negativeMarks}, Correct Choice: ${questionDetails.correctOption}",
+                                style: GoogleFonts.raleway(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                          "Are you sure you want to delete this question?",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 196, 195, 193),
+                                        actions: [
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              deleteQuestion(
+                                                  questionID: questionDetails
+                                                      .questionID,
+                                                  question:
+                                                      questionDetails.question,
+                                                  testName: widget.testName);
+                                            },
+                                            child: Text(
+                                              "Delete",
+                                              style: GoogleFonts.raleway(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.black),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(
+                                              "Return to Questions",
+                                              style: GoogleFonts.raleway(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
