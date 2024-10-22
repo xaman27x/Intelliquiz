@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intelliquiz/models/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intelliquiz/root_components/admin_management_page.dart';
+import 'package:intelliquiz/root_components/root_scheduled_tests.dart';
 import 'package:intelliquiz/root_components/root_staged_test.dart';
 
 class RootHomePage extends StatefulWidget {
@@ -55,7 +56,7 @@ class _RootHomePageState extends State<RootHomePage> {
       bottomNavigationBar: Container(
         color: Colors.black,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             ElevatedButton(
               onPressed: () {
@@ -100,7 +101,14 @@ class _RootHomePageState extends State<RootHomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RootScheduledTestPage(),
+                  ),
+                );
+              },
               child: Text(
                 "SCHEDULED TESTS",
                 style: GoogleFonts.raleway(

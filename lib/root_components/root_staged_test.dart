@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intelliquiz/models/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RootStagedTestPage extends StatefulWidget {
@@ -12,8 +11,41 @@ class RootStagedTestPage extends StatefulWidget {
 
 class _RootStagedTestPageState extends State<RootStagedTestPage> {
   late Stream<QuerySnapshot> testDetailsStream = const Stream.empty();
-  Future<void> signOut() async {
-    await Auth().signOut();
+  late TimeOfDay? selectedTime = TimeOfDay.now();
+  late DateTime? selectedDate = DateTime.now();
+  late bool showQuestions = false;
+
+  Future<void> scheduleTest(
+      {required String testName,
+      required String testID,
+      required scheduledYear,
+      required scheduledMonth,
+      required scheduledDay,
+      required scheduledHour,
+      required scheduledMin}) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Test_Staging')
+        .where('testName', isEqualTo: testName)
+        .where('testID', isEqualTo: testID)
+        .get();
+    final dynamic data = querySnapshot.docs.first;
+    final Timestamp timestamp = Timestamp.fromDate(
+      DateTime(
+        scheduledYear,
+        scheduledMonth,
+        scheduledDay,
+        scheduledHour,
+        scheduledMin,
+        0,
+      ),
+    );
+    final Map<String, dynamic> dataUpload = {
+      'testID': testID,
+      'testName': testName,
+      'questions': data['questions'],
+      'scheduledTime': timestamp,
+    };
+    await FirebaseFirestore.instance.collection('Tests').add(dataUpload);
   }
 
   @override
@@ -71,6 +103,21 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
                   return ListTile(
                     tileColor: Colors.white,
                     hoverColor: Colors.white,
+                    leading: IconButton(
+                      onPressed: () => {
+                        setState(
+                          () {
+                            showQuestions = !showQuestions;
+                          },
+                        ),
+                      },
+                      icon: Icon(
+                        showQuestions
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                      ),
+                      color: showQuestions ? Colors.red : Colors.green,
+                    ),
                     title: Text(
                       "TEST: ${data['testName']}",
                       style: GoogleFonts.raleway(
@@ -93,7 +140,111 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
                         showDialog(
                           context: context,
                           builder: (context) {
-                            return AlertDialog(content: Column());
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                return AlertDialog(
+                                  content: Column(
+                                    children: [
+                                      const SizedBox(
+                                        height: 25,
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blue[400],
+                                        ),
+                                        onPressed: () async {
+                                          selectedTime = await showTimePicker(
+                                            context: context,
+                                            initialTime: TimeOfDay.now(),
+                                          );
+                                          setState(() => ());
+                                        },
+                                        child: Text(
+                                          "Select Time",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 25,
+                                      ),
+                                      Text(
+                                        "Picked Time: ${selectedTime!.format(context)}",
+                                        style: GoogleFonts.raleway(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 25,
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blue[400],
+                                        ),
+                                        onPressed: () async {
+                                          selectedDate = await showDatePicker(
+                                            context: context,
+                                            firstDate: DateTime.now(),
+                                            lastDate: DateTime(2050),
+                                          );
+                                          setState(() => ());
+                                        },
+                                        child: Text(
+                                          "Select Date",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 25,
+                                      ),
+                                      Text(
+                                        "Picked Date: ${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}",
+                                        style: GoogleFonts.raleway(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.amber[300],
+                                        ),
+                                        onPressed: () => {
+                                          Navigator.pop(context),
+                                          scheduleTest(
+                                            testName: data['testName'],
+                                            testID: data['testID'],
+                                            scheduledYear: selectedDate!.year,
+                                            scheduledMonth: selectedDate!.month,
+                                            scheduledDay: selectedDate!.day,
+                                            scheduledHour: selectedTime!.hour,
+                                            scheduledMin: selectedTime!.minute,
+                                          ),
+                                        },
+                                        child: Text(
+                                          "FINALISE",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
                           },
                         );
                       },
