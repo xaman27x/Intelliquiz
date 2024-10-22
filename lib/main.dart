@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intelliquiz/admin_components/admin_test_creator.dart';
+import 'package:intelliquiz/admin_components/admin_home_page.dart';
 import 'package:intelliquiz/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intelliquiz/root_components/root_home_page.dart';
 import 'package:intelliquiz/shared_components/intro_page.dart';
 
 void main() async {
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'IntelliQuiz',
-      home: AdminTestDetailsPage(),
+      home: AdminHomePage(),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intelliquiz/models/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intelliquiz/root_components/admin_management_page.dart';
+import 'package:intelliquiz/root_components/root_staged_test.dart';
 
 class RootHomePage extends StatefulWidget {
   const RootHomePage({super.key});
@@ -48,6 +49,9 @@ class _RootHomePageState extends State<RootHomePage> {
           )
         ],
       ),
+      body: Container(
+        color: Colors.grey[400],
+      ),
       bottomNavigationBar: Container(
         color: Colors.black,
         child: Row(
@@ -63,7 +67,42 @@ class _RootHomePageState extends State<RootHomePage> {
                 );
               },
               child: Text(
-                'Admins',
+                'ADMINS',
+                style: GoogleFonts.raleway(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RootStagedTestPage(),
+                  ),
+                );
+              },
+              child: Text(
+                "CREATED TESTS",
+                style: GoogleFonts.raleway(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+              ),
+              onPressed: () {},
+              child: Text(
+                "SCHEDULED TESTS",
                 style: GoogleFonts.raleway(
                   color: Colors.black,
                   fontSize: 16,
