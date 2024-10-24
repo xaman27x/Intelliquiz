@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intelliquiz/candidate_components/candidate_test_view_page.dart';
 import 'package:intelliquiz/models/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -106,6 +107,8 @@ class _CandidateHomePage extends State<CandidateHomePage> {
                   var data = snapshot.data!.docs[index];
                   int? questionCount = data['questions'].length;
                   int? durationInMin = data['durationInMin'];
+                  String testName = data['testName'];
+                  String testID = data['testID'];
                   DateTime scheduledTime =
                       (data['scheduledTime'] as Timestamp).toDate();
                   return Card(
@@ -187,13 +190,117 @@ class _CandidateHomePage extends State<CandidateHomePage> {
                                         durationInMin: durationInMin!,
                                       ),
                                     ),
+                                    actions: [
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.black,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  CandidateTestViewPage(
+                                                testName: testName,
+                                                testID: testID,
+                                                testDuration: durationInMin,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          "START",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red[600],
+                                        ),
+                                        onPressed: () => {
+                                          Navigator.pop(context),
+                                        },
+                                        child: Text(
+                                          "CANCEL",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                },
+                              )
+                            }
+                          else
+                            {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    content: Text(
+                                      instructionBuilder(
+                                        questionCount: questionCount!,
+                                        durationInMin: durationInMin!,
+                                      ),
+                                    ),
+                                    actions: [
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.black,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  CandidateTestViewPage(
+                                                testName: testName,
+                                                testID: testID,
+                                                testDuration: durationInMin,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          "START",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red[600],
+                                        ),
+                                        onPressed: () => {
+                                          Navigator.pop(context),
+                                        },
+                                        child: Text(
+                                          "CANCEL",
+                                          style: GoogleFonts.raleway(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   );
                                 },
                               )
                             }
                         },
                         child: Text(
-                          'START',
+                          "PROCEED",
                           style: GoogleFonts.raleway(
                             fontSize: 15,
                             color: Colors.white,

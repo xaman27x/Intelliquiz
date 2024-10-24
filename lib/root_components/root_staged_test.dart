@@ -14,6 +14,7 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
   late TimeOfDay? selectedTime = TimeOfDay.now();
   late DateTime? selectedDate = DateTime.now();
   late bool showQuestions = false;
+  final TextEditingController _controllerDuration = TextEditingController();
 
   Future<void> scheduleTest(
       {required String testName,
@@ -22,13 +23,15 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
       required scheduledMonth,
       required scheduledDay,
       required scheduledHour,
-      required scheduledMin}) async {
+      required scheduledMin,
+      required durationInMin}) async {
     final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('Test_Staging')
         .where('testName', isEqualTo: testName)
         .where('testID', isEqualTo: testID)
         .get();
     final dynamic data = querySnapshot.docs.first;
+    final int durationInMinInt = int.parse(durationInMin);
     final Timestamp timestamp = Timestamp.fromDate(
       DateTime(
         scheduledYear,
@@ -44,6 +47,7 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
       'testName': testName,
       'questions': data['questions'],
       'scheduledTime': timestamp,
+      'durationInMin': durationInMinInt,
     };
     await FirebaseFirestore.instance.collection('Tests').add(dataUpload);
   }
@@ -215,6 +219,19 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
                                       const SizedBox(
                                         height: 10,
                                       ),
+                                      TextField(
+                                        controller: _controllerDuration,
+                                        decoration: InputDecoration(
+                                          icon: const Icon(
+                                            Icons.timelapse,
+                                            color: Colors.black,
+                                          ),
+                                          fillColor: Colors.grey[300],
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.amber[300],
@@ -229,6 +246,8 @@ class _RootStagedTestPageState extends State<RootStagedTestPage> {
                                             scheduledDay: selectedDate!.day,
                                             scheduledHour: selectedTime!.hour,
                                             scheduledMin: selectedTime!.minute,
+                                            durationInMin:
+                                                _controllerDuration.text,
                                           ),
                                         },
                                         child: Text(
