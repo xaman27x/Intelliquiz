@@ -1,4 +1,4 @@
-# SDS Online Aptitude Test System
+# ![IntelliQuiz Logo](path/to/logo.png) Intelliquiz (SDS Online Aptitude Test System)
 
 This project is developed for the Software Development Section (SDS) under COEP Tech University to conduct online aptitude tests for students. The application is designed with role-based authentication to provide a seamless and secure testing experience.
 
@@ -26,6 +26,10 @@ This project is developed for the Software Development Section (SDS) under COEP 
   - Candidate feedback submission.
   - Secure registration for admins using an admin access code stored in Firestore.
 
+## Database Diagram
+
+![Database Diagram](assets/images/database.jpeg)
+
 ## Installation
 
 1. **Clone the Repository**:
@@ -41,19 +45,21 @@ This project is developed for the Software Development Section (SDS) under COEP 
     ```bash
     flutter run
     ```
+## Project Link
+Hosted on GCP(Google Cloud Platform) ![IntelliQuiz](https://intelliquiz1.web.app/)
 ## Usage
-### Admin Registration:
+**Admin Registration**:
 Navigate to the common registration page.
 Enter the admin access code (if applicable) to register as an admin.
 
-### Test Creation:
+**Test Creation**:
 Admins can create tests and manage questions through the admin panel.
 
-### Candidate Participation:
+**Candidate Participation**:
 Candidates can log in and view scheduled tests.
 Tests can be taken within the given time frame.
 
-### Review Process:
+**Review Process**:
 Admins can review candidate responses and manually update scores as needed.
 
 ## Contributing
