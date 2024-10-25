@@ -34,8 +34,8 @@ This project is developed for the Software Development Section (SDS) under COEP 
 
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
-   cd <project-directory>
+   git clone https://github.com/xaman27x/Intelliquiz.git
+   cd ./intelliquiz
 
 2. **Install Dependencies**:
     ```bash
