@@ -31,22 +31,29 @@ class CandidateHomePage extends StatefulWidget {
 
 class _CandidateHomePage extends State<CandidateHomePage> {
   late Stream<QuerySnapshot> finalTestStream;
-  Future<void> signOut() async {
-    await Auth().signOut();
-  }
+  List<String> takenTests = [];
 
   @override
   void initState() {
+    super.initState();
     finalTestStream =
         FirebaseFirestore.instance.collection('Tests').snapshots();
-    super.initState();
-    return;
+    fetchTakenTests();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    return;
+  Future<void> fetchTakenTests() async {
+    final QuerySnapshot candidateSnapshot = await FirebaseFirestore.instance
+        .collection('Candidates')
+        .where('UserID', isEqualTo: Auth().currentUser!.uid)
+        .get();
+    final candidateData = candidateSnapshot.docs.first;
+    setState(() {
+      takenTests = List<String>.from(candidateData['testTaken'] ?? []);
+    });
+  }
+
+  Future<void> signOut() async {
+    await Auth().signOut();
   }
 
   @override
@@ -94,7 +101,7 @@ class _CandidateHomePage extends State<CandidateHomePage> {
             } else if (snapshot.hasError) {
               return Center(
                 child: Text(
-                  "An Error Occured",
+                  "An Error Occurred",
                   style: GoogleFonts.raleway(
                     color: Colors.black,
                   ),
@@ -105,22 +112,20 @@ class _CandidateHomePage extends State<CandidateHomePage> {
                 itemCount: snapshot.data!.docs.length,
                 itemBuilder: (context, index) {
                   var data = snapshot.data!.docs[index];
-                  int? questionCount = data['questions'].length;
-                  int? durationInMin = data['durationInMin'];
+                  int questionCount = data['questions'].length;
+                  int durationInMin = data['durationInMin'];
                   String testName = data['testName'];
                   String testID = data['testID'];
                   DateTime scheduledTime =
                       (data['scheduledTime'] as Timestamp).toDate();
+                  bool isTaken = takenTests.contains(testName);
+
                   return Card(
+                    color: isTaken ? Colors.green[50] : Colors.white,
                     child: ListTile(
-                      leading: IconButton(
-                        icon: const Icon(
-                          Icons.school_sharp,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {
-                          const AlertDialog();
-                        },
+                      leading: Icon(
+                        isTaken ? Icons.check_circle : Icons.school_sharp,
+                        color: isTaken ? Colors.green : Colors.black,
                       ),
                       title: Text(
                         "Test: ${data['testName']}",
@@ -129,7 +134,8 @@ class _CandidateHomePage extends State<CandidateHomePage> {
                           fontSize: 19,
                         ),
                       ),
-                      subtitle: Row(
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "Questions: $questionCount",
@@ -138,9 +144,6 @@ class _CandidateHomePage extends State<CandidateHomePage> {
                               fontSize: 14,
                             ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
                           Text(
                             "Scheduled Time: $scheduledTime",
                             style: GoogleFonts.raleway(
@@ -148,159 +151,32 @@ class _CandidateHomePage extends State<CandidateHomePage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          if (isTaken)
+                            Text(
+                              "Status: Already Taken",
+                              style: GoogleFonts.raleway(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                         ],
                       ),
                       trailing: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: isTaken ? Colors.grey : Colors.black,
                         ),
-                        onPressed: () => {
-                          if (DateTime.now().isBefore(scheduledTime))
-                            {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: Text(
-                                      "Test Has Not Yet Started!",
-                                      style: GoogleFonts.raleway(),
-                                    ),
-                                  );
-                                },
-                              )
-                            }
-                          else if ((DateTime.now()
-                                  .isAtSameMomentAs(scheduledTime)) ||
-                              (DateTime.now().isAfter(scheduledTime) &&
-                                  DateTime.now().isBefore(
-                                    scheduledTime.add(
-                                      const Duration(
-                                        minutes: 15,
-                                      ),
-                                    ),
-                                  )))
-                            {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    content: Text(
-                                      instructionBuilder(
-                                        questionCount: questionCount!,
-                                        durationInMin: durationInMin!,
-                                      ),
-                                    ),
-                                    actions: [
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.black,
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  CandidateTestViewPage(
-                                                testName: testName,
-                                                testID: testID,
-                                                testDuration: durationInMin,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Text(
-                                          "START",
-                                          style: GoogleFonts.raleway(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red[600],
-                                        ),
-                                        onPressed: () => {
-                                          Navigator.pop(context),
-                                        },
-                                        child: Text(
-                                          "CANCEL",
-                                          style: GoogleFonts.raleway(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                },
-                              )
-                            }
-                          else
-                            {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    content: Text(
-                                      instructionBuilder(
-                                        questionCount: questionCount!,
-                                        durationInMin: durationInMin!,
-                                      ),
-                                    ),
-                                    actions: [
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.black,
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  CandidateTestViewPage(
-                                                testName: testName,
-                                                testID: testID,
-                                                testDuration: durationInMin,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Text(
-                                          "START",
-                                          style: GoogleFonts.raleway(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red[600],
-                                        ),
-                                        onPressed: () => {
-                                          Navigator.pop(context),
-                                        },
-                                        child: Text(
-                                          "CANCEL",
-                                          style: GoogleFonts.raleway(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  );
-                                },
-                              )
-                            }
-                        },
+                        onPressed: isTaken
+                            ? null
+                            : () => handleTestAccess(
+                                  scheduledTime,
+                                  context,
+                                  testName,
+                                  testID,
+                                  questionCount,
+                                  durationInMin,
+                                ),
                         child: Text(
-                          "PROCEED",
+                          isTaken ? "COMPLETED" : "PROCEED",
                           style: GoogleFonts.raleway(
                             fontSize: 15,
                             color: Colors.white,
@@ -317,5 +193,77 @@ class _CandidateHomePage extends State<CandidateHomePage> {
         ),
       ),
     );
+  }
+
+  void handleTestAccess(DateTime scheduledTime, BuildContext context,
+      String testName, String testID, int questionCount, int durationInMin) {
+    if (DateTime.now().isBefore(scheduledTime)) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              "Test Has Not Yet Started!",
+              style: GoogleFonts.raleway(),
+            ),
+          );
+        },
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text(
+              instructionBuilder(
+                questionCount: questionCount,
+                durationInMin: durationInMin,
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CandidateTestViewPage(
+                        testName: testName,
+                        testID: testID,
+                        testDuration: durationInMin,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  "START",
+                  style: GoogleFonts.raleway(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[600],
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  "CANCEL",
+                  style: GoogleFonts.raleway(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              )
+            ],
+          );
+        },
+      );
+    }
   }
 }

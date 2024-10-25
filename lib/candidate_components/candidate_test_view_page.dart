@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intelliquiz/candidate_components/candidate_test_review_page.dart';
+import 'package:intelliquiz/candidate_components/candidate_feedback_page.dart';
 import 'package:intelliquiz/models/auth.dart';
 
 StreamBuilder questionPage({
@@ -10,7 +10,7 @@ StreamBuilder questionPage({
   required String questionDomain,
   required Map<String, dynamic> candidateResponses,
   required Function(String questionID, dynamic response)
-      onResponseUpdate, // Callback to update response
+      onResponseUpdate, // Callback
 }) {
   final Stream<QuerySnapshot> questionStream = FirebaseFirestore.instance
       .collection('Questions')
@@ -173,10 +173,27 @@ class _CandidateTestViewPageState extends State<CandidateTestViewPage> {
     Map<String, dynamic> dataUpload = {
       'UserID': userID,
       'EmailID': email,
-      'Reponses': candidateResponses,
+      'Responses': candidateResponses,
       'submissionTime': DateTime.now(),
+      'testName': widget.testName,
     };
     await FirebaseFirestore.instance.collection('Responses').add(dataUpload);
+  }
+
+  Future<void> markTestTaken({required String testName}) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Candidates')
+        .where('UserID', isEqualTo: Auth().currentUser!.uid)
+        .get();
+    final docID = querySnapshot.docs.first.id;
+
+    await FirebaseFirestore.instance.collection('Candidates').doc(docID).update(
+      {
+        "testTaken": FieldValue.arrayUnion(
+          [testName],
+        ),
+      },
+    );
   }
 
   late Timer _timer;
@@ -275,11 +292,13 @@ class _CandidateTestViewPageState extends State<CandidateTestViewPage> {
                               submitResponse(
                                 candidateReponses: candidateResponses,
                               );
+                              markTestTaken(testName: widget.testName);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CandidateTestReviewPage(),
+                                  builder: (context) => CandidateFeedbackPage(
+                                    testName: widget.testName,
+                                  ),
                                 ),
                               );
                             },

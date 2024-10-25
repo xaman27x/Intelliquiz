@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intelliquiz/admin_components/admin_home_page.dart';
 import 'package:intelliquiz/candidate_components/candidate_home_page.dart';
 import 'package:intelliquiz/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,9 +20,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      initialRoute: "/",
+      routes: {
+        "/candidate_home_page": (context) => const CandidateHomePage(),
+      },
       title: 'IntelliQuiz',
-      home: IntroPage(),
+      home: const IntroPage(),
     );
   }
 }

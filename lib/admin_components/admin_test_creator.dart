@@ -125,7 +125,17 @@ class _AdminTestCreatorState extends State<AdminTestCreator> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return const AlertDialog(
+                        icon: Icon(Icons.book_outlined),
+                        title: Text("Enter the Name of the Test"),
+                      );
+                    },
+                  );
+                },
                 child: Text(
                   'Create New Test',
                   style: GoogleFonts.raleway(

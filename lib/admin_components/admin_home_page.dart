@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intelliquiz/admin_components/admin_test_creator.dart';
+import 'package:intelliquiz/admin_components/admin_test_results.dart';
 import 'package:intelliquiz/admin_components/admins_info_page.dart';
 import 'package:intelliquiz/models/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -101,7 +102,23 @@ class _AdminHomePage extends State<AdminHomePage> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-            )
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminTestResultGroupPage(),
+                  ),
+                );
+              },
+              child: Text(
+                "PREVIOUS RESULTS",
+                style: GoogleFonts.raleway(
+                  color: Colors.black,
+                ),
+              ),
+            ),
           ],
         ),
       ),
