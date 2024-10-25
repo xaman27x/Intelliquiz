@@ -46,7 +46,7 @@ This project is developed for the Software Development Section (SDS) under COEP 
     flutter run
     ```
 ## Project Link
-Hosted on GCP(Google Cloud Platform) ![IntelliQuiz](https://intelliquiz1.web.app/)
+Hosted on GCP(Google Cloud Platform) [IntelliQuiz] - (https://intelliquiz1.web.app/)
 ## Usage
 **Admin Registration**:
 Navigate to the common registration page.
