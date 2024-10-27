@@ -1,4 +1,4 @@
-# ![IntelliQuiz Logo](path/to/logo.png) Intelliquiz (SDS Online Aptitude Test System)
+# Intelliquiz (SDS Online Aptitude Test System)
 
 This project is developed for the Software Development Section (SDS) under COEP Tech University to conduct online aptitude tests for students. The application is designed with role-based authentication to provide a seamless and secure testing experience.
 
@@ -25,6 +25,14 @@ This project is developed for the Software Development Section (SDS) under COEP 
   - Password recovery for users.
   - Candidate feedback submission.
   - Secure registration for admins using an admin access code stored in Firestore.
+
+## Tech Stack
+- **Frontend**: Flutter, for a responsive cross-platform application.
+- **Database**: Cloud Firestore, for scalable and flexible data storage.
+- **Authentication**: Firebase Authentication with role-based authentication (Root, Admin, Candidate) for secure access control.
+- **File Storage**: Firebase Cloud Storage, to handle media assets (images, documents) for questions and test materials.
+- **Cloud Functions**: To handle backend compute workload, after recieving responses from candidates.
+- **Hosting**: Google Cloud Platform (GCP), to host the application and integrate with other Firebase services.
 
 ## Database Diagram
 
